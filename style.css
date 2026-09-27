@@ -1,0 +1,354 @@
+/* 大学生考证时间轴 · 样式
+   Token 与线条/胶囊/悬停规律照搬 IP 站 C-gallery 的 style.css（改配色先改 个人IP\视觉规范.md） */
+:root{
+  color-scheme:only light;
+  --bg:#efeee9;
+  --card:#f8f7f3;
+  --ink:#1c1d1f;
+  --muted:#7e807c;
+  --line:rgba(28,29,31,.11);
+  --line-strong:rgba(28,29,31,.22);
+  --chip:rgba(28,29,31,.15);
+  --hover:rgba(28,29,31,.035);
+  --amber:#a8541f;
+  --amber-soft:rgba(168,84,31,.35);
+  --pad:clamp(20px,5vw,72px);
+  --max:1160px;
+  --mono:Consolas,"Cascadia Mono",ui-monospace,monospace;
+}
+html[data-theme="night"]{
+  color-scheme:only dark;
+  --bg:#0e0f11;
+  --card:#17191c;
+  --ink:#eceef1;
+  --muted:#8a9099;
+  --line:rgba(255,255,255,.10);
+  --line-strong:rgba(255,255,255,.20);
+  --chip:rgba(255,255,255,.12);
+  --hover:rgba(255,255,255,.045);
+  --amber:#e0a458;
+  --amber-soft:rgba(224,164,88,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI","Microsoft YaHei UI","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  /* 防横向溢出要用 clip 而不是 hidden：
+     hidden 会把 body 变成滚动容器 → 吸顶时间轴会被它困在 body 里、咬不住视口（2026-09-27 踩过，CDP 实测 top=-811） */
+  overflow-x:clip;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+
+/* ── 顶栏 ───────────────────────────── */
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:34px 0 0;font-size:13.5px;letter-spacing:.06em;
+}
+.who{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.who b{font-weight:600;letter-spacing:.08em}
+.who span{color:var(--muted);font-family:var(--mono);font-size:12.5px}
+.who .sep{font-style:normal;color:var(--line-strong)}
+.who .pagename{color:var(--ink);opacity:.86}
+.tools{display:flex;align-items:center;gap:18px}
+.theme{display:inline-flex;align-items:center}
+.theme button{
+  appearance:none;display:grid;place-items:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--chip);border-radius:50%;background:none;
+  color:var(--ink);opacity:.78;cursor:pointer;
+  transition:color .25s,border-color .25s,opacity .25s,background-color .25s;
+}
+.theme button:hover{color:var(--amber);border-color:var(--line-strong);opacity:1;background:var(--hover)}
+html[data-theme="night"] .theme button{color:var(--amber);opacity:.95}
+.theme svg{grid-area:1/1;transition:opacity .3s ease,transform .35s cubic-bezier(.22,.61,.36,1)}
+.theme .ico-moon{opacity:0;transform:rotate(-32deg) scale(.86)}
+html[data-theme="night"] .theme .ico-sun{opacity:0;transform:rotate(32deg) scale(.86)}
+html[data-theme="night"] .theme .ico-moon{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.theme svg{transition:none}}
+
+/* ── 首屏 ───────────────────────────── */
+.hero{padding:clamp(38px,7vh,84px) 0 clamp(26px,4vh,44px)}
+.kicker{
+  font-family:var(--mono);font-size:12.5px;color:var(--muted);
+  letter-spacing:.16em;text-transform:uppercase;margin:0 0 22px;
+}
+h1{margin:0;font-weight:600;letter-spacing:.005em;font-size:clamp(26px,4.4vw,48px);line-height:1.26;max-width:22em}
+h1 em{font-style:normal;position:relative;white-space:nowrap}
+h1 em::after{
+  content:"";position:absolute;left:0;right:0;bottom:.08em;height:1px;background:var(--amber);opacity:.7;
+  transform:scaleX(0);transform-origin:left;transition:transform .9s cubic-bezier(.22,.61,.36,1) .35s;
+}
+.in h1 em::after{transform:scaleX(1)}
+.sub{margin:24px 0 0;max-width:38em;color:var(--muted);font-size:clamp(14.5px,1.35vw,16.5px);line-height:1.9}
+.meta{margin:16px 0 0;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+.meta .warn{color:var(--amber);border-bottom:1px solid var(--amber-soft)}
+
+/* ── 筛选 ───────────────────────────── */
+.filters{
+  margin:clamp(20px,3vh,30px) 0 0;padding:14px 0 0;border-top:1px solid var(--line-strong);
+  display:flex;flex-direction:column;gap:10px;
+}
+.frow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.flabel{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;flex:0 0 auto}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{
+  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
+  padding:3px 12px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+  color:var(--muted);cursor:pointer;
+  transition:color .22s,border-color .22s,background-color .22s;
+}
+.pill:hover{color:var(--ink);border-color:var(--line-strong);background:var(--hover)}
+.pill.on{color:var(--amber);border-color:var(--amber);background:none}
+.pill .n{opacity:.6;margin-left:5px}
+.q{
+  appearance:none;flex:1 1 220px;min-width:0;max-width:320px;
+  border:1px solid var(--chip);border-radius:999px;background:none;color:var(--ink);
+  padding:4px 14px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;
+  transition:border-color .22s,background-color .22s;
+}
+.q::placeholder{color:var(--muted);opacity:.8}
+.q:focus{outline:none;border-color:var(--amber);background:var(--hover)}
+
+/* ── 时间轴（滚动钉住：往下滚就一直看得见） ──
+   ⚠️ 这里**故意不用 position:sticky**：在这张页面里它只吸一截就跟着走
+   （2026-09-27 实测 top=-2411，逐层排查没找到破坏者）→ 改成 app.js 用滚动事件钉住，行为可测可控。
+   钉住时加 .pinned（app.js 给），脱开时自动还原。 */
+.stickyzone{position:relative}
+.tlwrap{margin:clamp(20px,3vh,30px) 0 0}
+.tlbar{
+  position:relative;z-index:20;
+  /* 通栏：负边距吃掉 .wrap 的左右内边距，底色自己补回来 */
+  margin-left:calc(var(--pad) * -1);margin-right:calc(var(--pad) * -1);
+  padding:8px var(--pad) 9px;
+  background:var(--bg);
+  border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+}
+/* 钉住的状态：底下加一道柔影，让人知道这条已经咬住顶部了 */
+.tlbar.pinned{
+  position:fixed;top:0;left:auto;right:auto;margin:0;
+  box-shadow:0 10px 24px -14px rgba(20,20,20,.45);
+}
+html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.75)}
+@supports (backdrop-filter:blur(6px)){
+  .tlbar.pinned{background:color-mix(in srgb, var(--bg) 90%, transparent);backdrop-filter:blur(8px)}
+}
+.tlbar-label{
+  display:block;font-family:var(--mono);font-size:11px;color:var(--muted);
+  letter-spacing:.16em;text-transform:uppercase;margin:0 0 6px;
+}
+.tlbar-now{color:var(--amber);letter-spacing:.08em;margin-left:8px}
+.tlscroll{overflow-x:auto;overflow-y:hidden}
+.tl{display:grid;grid-template-columns:repeat(12,minmax(74px,1fr));position:relative;padding-top:2px}
+/* 一条通栏的琥珀细线＝时间轴本体（月份格之间没有线，清楚） */
+.tl::before{content:"";position:absolute;left:0;right:0;top:2px;height:1px;background:var(--line-strong)}
+.mslot{
+  position:relative;text-align:center;padding:11px 2px 1px;
+  border-left:1px solid var(--line);cursor:pointer;
+  transition:background-color .22s;
+}
+.mslot:first-child{border-left:0}
+.mslot:hover{background:var(--hover)}
+.mslot .m{
+  display:block;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);
+  letter-spacing:.04em;line-height:1.15;
+}
+.mslot .y{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;margin-top:1px}
+.mslot .mdots{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;min-height:16px;padding:4px 0 1px}
+
+/* 月份格里的「周」小刻度：让时间不只是平均数 12 格 */
+.cells{display:flex;gap:2px;padding:5px 4px 0;align-items:flex-end}
+.cell{flex:1;height:14px;opacity:.25;border-radius:1px;background:var(--line-strong);position:relative}
+.cell.reg{opacity:.3;background:var(--ink)}
+.cell.exam{opacity:.9;background:var(--amber);height:30px}
+.cell.tbd{opacity:.35;background:none;border:1px dashed var(--muted)}
+.cell.mine::after{
+  content:"";position:absolute;left:0;right:0;bottom:-5px;height:2px;background:var(--amber);
+}
+/* 已经过去的月份：压暗，眼睛先看现在与将来 */
+.mslot.past .m,.mslot.past .y{opacity:.42}
+.mslot.past{background:transparent}
+.mslot.now{background:linear-gradient(180deg,var(--amber-soft),transparent 70%)}
+.mslot.now::before{
+  content:"";position:absolute;left:0;right:0;top:2px;height:2px;background:var(--amber);
+}
+.mslot.now .m{color:var(--amber)}
+.mslot.now .y{color:var(--amber);opacity:.9}
+
+.dot{
+  width:10px;height:10px;padding:0;border:0;border-radius:50%;
+  background:var(--muted);opacity:.42;cursor:pointer;
+  transition:opacity .2s,transform .2s;
+}
+.dot.reg{background:var(--ink);opacity:.36}
+.dot.exam{background:var(--amber);opacity:.9;width:12px;height:12px}
+.dot.tbd{
+  background:none;border:1px dashed var(--muted);opacity:.6;width:12px;height:12px;
+}
+.dot:hover,.dot:focus-visible{opacity:1;transform:scale(1.35)}
+.dot.mine{box-shadow:0 0 0 2px var(--amber-soft)}
+
+/* ── 图例 ───────────────────────────── */
+.legend{
+  margin:12px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--muted);
+  letter-spacing:.04em;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+}
+.legend .dot{width:7px;height:7px;cursor:default;display:inline-block;transform:none}
+.legend .dot:hover{transform:none}
+.lgspan{width:1px;height:12px;background:var(--line-strong);display:inline-block;margin:0 4px}
+.legend-st b{font-weight:400}
+
+/* ── 证书卡（沿用 IP 站作品行：56px | 1fr | auto） ── */
+.list{margin:clamp(18px,3vh,26px) 0 0}
+.list-head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:20px;
+  padding-bottom:12px;border-bottom:1px solid var(--line-strong);
+  font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
+}
+.card{
+  display:grid;grid-template-columns:56px 1fr auto;gap:clamp(12px,3vw,34px);align-items:start;
+  padding:clamp(20px,3vw,30px) 0;border-bottom:1px solid var(--line);position:relative;
+}
+.card::before{
+  content:"";position:absolute;left:calc(var(--pad) * -1);right:calc(var(--pad) * -1);top:0;bottom:0;
+  background:linear-gradient(90deg,var(--hover),transparent);
+  opacity:0;transition:opacity .35s;pointer-events:none;
+}
+.card:hover::before{opacity:1}
+.card.hit::before{opacity:1}
+.card.hit{box-shadow:inset 2px 0 0 var(--amber)}
+.months{font-family:var(--mono);font-size:12.5px;color:var(--amber);letter-spacing:.06em;padding-top:.4em;line-height:1.5}
+.months i{display:block;font-style:normal;color:var(--muted);opacity:.75;font-size:11px}
+.card h2{
+  margin:0;font-size:clamp(17px,2vw,21px);font-weight:600;letter-spacing:.01em;
+  display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  transition:transform .35s cubic-bezier(.22,.61,.36,1);
+}
+.card:hover h2{transform:translateX(5px)}
+.card h2 .abbr{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;font-weight:400}
+.rows{margin:12px 0 0;display:flex;flex-direction:column;gap:5px}
+.row{display:flex;gap:10px;align-items:baseline;font-size:14px;line-height:1.75;flex-wrap:wrap}
+.row .k{
+  flex:0 0 auto;font-family:var(--mono);font-size:11.5px;color:var(--muted);
+  letter-spacing:.1em;min-width:4.2em;
+}
+.row .v{flex:1 1 60%;min-width:8em}
+.row .v .dates{font-family:var(--mono);font-size:13px}
+.tag{
+  border:1px solid var(--chip);border-radius:999px;padding:2px 9px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--muted);
+}
+.tag.src{color:var(--amber);border-color:var(--amber-soft)}
+/* 卡片里那句「小鱼：…」是主要读的内容（他 2026-09-27 定的口吻），所以给足字号行高 */
+.note{margin:12px 0 0;color:var(--ink);opacity:.82;font-size:14.5px;line-height:1.85;max-width:38em}
+.note strong{font-weight:600;opacity:1}
+.side{
+  display:flex;flex-direction:column;align-items:flex-end;gap:11px;padding-top:.2em;
+}
+.count{
+  font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;
+  text-align:right;white-space:nowrap;
+}
+.count.hot{color:var(--amber)}
+.count.done{opacity:.6}
+.sts{display:flex;gap:6px}
+.st{
+  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
+  padding:3px 10px;font-family:var(--mono);font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
+  transition:color .2s,border-color .2s,background-color .2s;
+}
+.st:hover{color:var(--ink);border-color:var(--line-strong);background:var(--hover)}
+.st.on.准备{color:var(--amber);border-color:var(--amber)}
+.st.on.已拿{color:var(--ink);border-color:var(--line-strong);background:var(--hover)}
+.st.on.不考{color:var(--ink);opacity:.55;border-color:var(--line-strong)}
+.updated{font-family:var(--mono);font-size:11px;color:var(--muted);opacity:.8;letter-spacing:.04em}
+.empty{
+  padding:clamp(40px,8vh,80px) 0;text-align:center;color:var(--muted);font-size:14.5px;
+}
+.toTop{
+  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
+  padding:3px 11px;font-family:var(--mono);font-size:11.5px;color:var(--muted);cursor:pointer;
+}
+.toTop:hover{color:var(--amber);border-color:var(--amber)}
+
+/* ── 分享键 + 弹层（每张卡一个二维码） ── */
+.share-btn{
+  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
+  padding:3px 11px;font-family:var(--mono);font-size:11.5px;color:var(--muted);cursor:pointer;
+  transition:color .2s,border-color .2s,background-color .2s;
+}
+.share-btn:hover{color:var(--amber);border-color:var(--amber);background:var(--hover)}
+.share-box{
+  position:fixed;inset:0;z-index:60;background:rgba(12,12,13,.34);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.share-panel{
+  position:relative;background:var(--bg);border:1px solid var(--line-strong);
+  padding:22px 24px 18px;max-width:min(340px,100%);text-align:center;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.5);
+}
+html[data-theme="night"] .share-panel{background:var(--card);box-shadow:0 24px 60px -24px rgba(0,0,0,.8)}
+.share-panel .share-title{margin:0 0 14px;font-size:15px;font-weight:600;line-height:1.5;padding-right:18px;text-align:left}
+.qr-svg{display:block;margin:0 auto;width:168px;height:168px}
+.share-noqr{margin:8px 0;color:var(--muted);font-size:13px}
+.share-panel .share-url{
+  font-family:var(--mono);font-size:11px;color:var(--muted);word-break:break-all;
+  margin:14px 0 12px;text-align:left;line-height:1.6;
+}
+.share-actions{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.share-copy{
+  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
+  padding:4px 13px;font-family:var(--mono);font-size:12px;color:var(--amber);cursor:pointer;
+  transition:border-color .2s,background-color .2s;
+}
+.share-copy:hover{border-color:var(--amber);background:var(--hover)}
+.share-tip{font-size:11.5px;color:var(--muted);text-align:left}
+.share-close{
+  appearance:none;position:absolute;top:8px;right:10px;width:24px;height:24px;padding:0;
+  border:0;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;
+}
+.share-close:hover{color:var(--amber)}
+/* 从二维码进来时把那张卡标亮，让人一眼看到 */
+.card.hit{background:linear-gradient(90deg,var(--hover),transparent)}
+.card.hit .months{color:var(--amber)}
+
+footer{
+  padding:clamp(44px,7vh,90px) 0 46px;display:flex;flex-wrap:wrap;gap:14px 26px;
+  justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);
+}
+footer .sig{font-family:var(--mono);letter-spacing:.08em}
+footer a{border-bottom:1px solid var(--line-strong)}
+footer a:hover{color:var(--amber)}
+
+/* ── 进入与出图 ─────────────────────── */
+.rv{opacity:0;transform:translateY(14px)}
+.in .rv{opacity:1;transform:none;transition:opacity .8s ease,transform .8s cubic-bezier(.22,.61,.36,1)}
+.in .rv:nth-of-type(2){transition-delay:.06s}
+.in .rv:nth-of-type(3){transition-delay:.12s}
+html[data-nofade] .rv,html[data-nofade] .in .rv{opacity:1;transform:none;transition:none}
+html[data-nofade] h1 em::after{transform:scaleX(1);transition:none}
+html[data-nofade] .card h2{transform:none}
+@media (prefers-reduced-motion:reduce){
+  .rv,.in .rv{opacity:1;transform:none;transition:none}
+  h1 em::after{transform:scaleX(1);transition:none}
+  *{scroll-behavior:auto !important}
+}
+
+@media (max-width:640px){
+  .card{grid-template-columns:42px 1fr}
+  .side{grid-column:2;align-items:flex-start}
+  .top{flex-wrap:wrap;gap:12px}
+  .row .k{min-width:0}
+  /* 窄屏：轴只留「考试日」一条信息，省出纵向空间 */
+  .tl{grid-template-columns:repeat(12,minmax(46px,1fr));min-width:0}
+  .tlbar{padding:6px var(--pad) 7px}
+  .tlbar-label{margin-bottom:4px}
+  .mslot{padding-top:8px}
+  .mslot .m{font-size:11.5px}
+  .mslot .y{font-size:9px}
+  .mslot .mdots{display:none}
+  .cells{padding-top:4px}
+  .cell{height:10px}
+  .cell.exam{height:22px}
+}

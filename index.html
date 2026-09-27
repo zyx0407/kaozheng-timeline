@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="nightmode" content="disable">
+<title>大学生考证时间轴 · 阿玖 zyx0407</title>
+<meta name="description" content="大学生考证时间轴：从现在起 12 个月，一屏看清各类证书的报名与考试时间、费用和官方网站。">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<script>
+/* 错误探针：把运行时错误写进 <html data-error>，无头验收直接读（沿用脚手架的约定） */
+(function () {
+  var root = document.documentElement, buf = [];
+  function put(s) {
+    buf.push(s);
+    root.setAttribute('data-error', buf.join(' | '));
+    root.setAttribute('data-error-count', String(buf.length));
+  }
+  window.addEventListener('error', function (e) {
+    put((e.message || 'error') + ' @' + ((e.filename || '').split('/').pop()) + ':' + (e.lineno || 0));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    put('rejection: ' + ((e.reason && e.reason.message) || e.reason));
+  });
+  var ce = console.error.bind(console);
+  console.error = function () { put('console.error: ' + [].join.call(arguments, ' ')); ce.apply(null, arguments); };
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="who">
+      <b>阿玖</b><span>zyx0407</span>
+      <i class="sep">/</i>
+      <span class="pagename">考证时间轴</span>
+    </div>
+    <div class="tools">
+      <div class="theme">
+        <button type="button" id="themeBtn" title="切换白天 / 深夜" aria-label="切换白天 / 深夜">
+          <svg class="ico ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.1"></circle>
+            <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.5 5.5l1.5 1.5M17 17l1.5 1.5M18.5 5.5L17 7M7 17l-1.5 1.5"></path>
+          </svg>
+          <svg class="ico ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="kicker">Certification Timeline</p>
+      <h1>这 12 个月，<em>该考什么证</em></h1>
+      <p class="sub">适合大学生考的证都在这儿：报名时间、考试时间、费用、官方网站。轴上按月份摆开，卡片上标自己的进度（准备 / 已拿 / 不考），标记只存在本机浏览器。</p>
+      <p class="meta" id="meta"></p>
+    </section>
+
+    <nav class="filters" id="filters" aria-label="筛选">
+      <div class="frow" id="catRow"><span class="flabel">类别</span><div class="pills" id="catPills"></div></div>
+      <div class="frow" id="stRow"><span class="flabel">状态</span><div class="pills" id="stPills"></div></div>
+      <div class="frow"><span class="flabel">搜索</span>
+        <input type="search" id="q" class="q" placeholder="证名 / 简称 / 说明…" autocomplete="off">
+      </div>
+    </nav>
+
+    <!-- 吸顶容器：时间轴条和卡片区放在同一个盒子里，
+         这样轴的活动范围＝整份清单，往下滚多久它就咬住多久 -->
+    <div class="stickyzone" id="stickyzone">
+      <section class="tlwrap" id="tlwrap" aria-label="时间轴">
+        <div class="tlbar" id="tlbar">
+          <span class="tlbar-label">时间轴<span class="tlbar-now" id="tlNow"></span></span>
+          <div class="tlscroll"><div class="tl" id="tl"></div></div>
+        </div>
+      </section>
+
+      <section class="list" id="list" aria-label="证书清单"></section>
+    </div>
+
+    <p class="legend">
+      <span class="dot reg"></span>报名窗口
+      <span class="dot exam"></span>考试日
+      <span class="dot tbd"></span>考期待公布
+      <i class="lgspan"></i>
+      <span class="legend-st">状态：<b class="st-pre">准备</b> · <b class="st-done">已拿</b> · <b class="st-skip">不考</b> · 未标记</span>
+    </p>
+  </main>
+
+  <footer>
+    <span class="sig" id="footSig">大学生考证时间轴</span>
+    <span id="footNote"></span>
+  </footer>
+</div>
+
+<script src="数据.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
