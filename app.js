@@ -1,4 +1,4 @@
-/* 大学生考证时间轴 · 逻辑
+/* 大学生日历 · 逻辑
    数据在 数据.js（window.KAOZHENG），这里只管：月份轴 → 卡片 → 筛选 → 状态标记
    零依赖、零构建、双击 index.html 也能跑
    调试开关：?still=1 关动效（出图用）· ?theme=day|night 强制配色 · ?cat=语言 预筛 · ?probe=1 只读探针 · ?share=<证 id> 直接摊开那张卡的分享卡（出图 / 验收用） */
@@ -381,6 +381,7 @@
   var KZ = window.KAOZHENG || {};
   var META = KZ.元信息 || {};
   var CATS = KZ.类别 || [];
+  var BIGS = KZ.大类 || [{ id: '考证', 名: '考证' }];     // 一级大类（考研 / 考公 / 考证）；老数据没有就退化成单一类
   var ALL = (KZ.证 || []).slice();
   var MONTHS = 12;
   var DEEP = null;      // 从二维码进来的那张卡 id（?card=xxx），给探针与高亮用
@@ -390,6 +391,12 @@
   var PROBE_ONLY = /[?&]probe=1/.test(q);
   var PRESET_CAT = (function () {
     var m = /[?&]cat=([^&]+)/.exec(q);
+    if (!m) return null;
+    try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+  })();
+  /* ?big=考研|考公|考证 —— 一级大类预筛（给深链和出图用） */
+  var PRESET_BIG = (function () {
+    var m = /[?&]big=([^&]+)/.exec(q);
     if (!m) return null;
     try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
   })();
@@ -462,7 +469,15 @@
   function saveMarks() { try { localStorage.setItem(LSKEY, JSON.stringify(marks)); } catch (e) {} }
 
   /* ── 当前选中 ─────────────────────── */
-  var cur = { cat: (PRESET_CAT && findCat(PRESET_CAT)) || '全部', st: '全部', q: '' };
+  var cur = { big: (PRESET_BIG && findBig(PRESET_BIG)) || '全部', cat: (PRESET_CAT && findCat(PRESET_CAT)) || '全部', st: '全部', q: '' };
+  function findBig(id) {
+    for (var i = 0; i < BIGS.length; i++) if (BIGS[i].id === id || BIGS[i].名 === id) return BIGS[i].id;
+    return null;
+  }
+  function bigName(id) {
+    for (var i = 0; i < BIGS.length; i++) if (BIGS[i].id === id) return BIGS[i].名;
+    return id;
+  }
   function findCat(id) {
     for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id || CATS[i].名 === id) return CATS[i].id;
     return null;
@@ -516,10 +531,15 @@
     if (loose) f = f.concat([c.说明, c.适合, c.费用]);
     return f.join(' ').toLowerCase();
   }
+  /* 「专业扩展」（TEM-4/8）**不进主列表**（他 2026-09-27 定的）：默认一条不出，只有点了那枚胶囊才显示 */
+  function isExt(c) { return !!c.扩展; }
   /* 除搜索以外的条件先过一遍，再决定搜索用严格还是宽松 */
   function preFiltered() {
     return ALL.filter(function (c) {
-      if (cur.cat !== '全部' && c.类别 !== cur.cat) return false;
+      if (cur.big !== '全部' && c.大类 !== cur.big) return false;      // 一级：考研 / 考公 / 考证
+      if (cur.cat === '专业扩展') { if (!isExt(c)) return false; }
+      else if (isExt(c)) return false;
+      if (cur.cat !== '全部' && cur.cat !== '专业扩展' && c.类别 !== cur.cat) return false;
       var st = marks[c.id] || '';
       if (cur.st === '未标记' && st) return false;
       if (cur.st !== '全部' && cur.st !== '未标记' && st !== cur.st) return false;
@@ -635,7 +655,7 @@
     var reg = shareRegText(c), ex = shareExamText(c);
     var note = String(c.说明 || '').replace(/^小鱼：/, '');
     return '<div class="share-card" data-share-card="' + esc(c.id) + '">' +
-      '<div class="sh-head"><span class="brand">考证时间轴</span><span>阿玖 · zyx0407</span></div>' +
+      '<div class="sh-head"><span class="brand">大学生日历</span><span>阿玖 · zyx0407</span></div>' +
       '<h3>' + esc(c.名) + '</h3>' +
       (c.简称 ? '<span class="abbr">' + esc(c.简称) + '</span>' : '') +
       '<div class="sh-facts">' +
@@ -677,7 +697,7 @@
       return out;
     }
     /* 顶行 */
-    T('考证时间轴', '11px ' + mono, cAmber, padX, y + 9);
+    T('大学生日历', '11px ' + mono, cAmber, padX, y + 9);
     var who = '阿玖 · zyx0407';
     ctx.font = '11px ' + mono;
     T(who, '11px ' + mono, cMuted, W - padX - ctx.measureText(who).width, y + 9);
@@ -826,7 +846,7 @@
       if (kind === 'copy') { copyShareURL(url, act); return; }
       if (kind === 'save') {
         var out = shareCanvas(c, g, url);
-        savePNG(out.canvas, '考证时间轴-' + (c.简称 || c.名) + '.png');
+        savePNG(out.canvas, '大学生日历-' + (c.简称 || c.名) + '.png');
         var tip = shareBox.querySelector('.shade-tip');
         if (tip) tip.textContent = '已存成 PNG（2 倍图 ' + out.canvas.width + '×' + out.canvas.height + '）';
       }
@@ -930,20 +950,38 @@
     }
   }
 
-  /* ── 渲染：筛选 ───────────────────── */
+  /* ── 渲染：筛选（两级：大类 考研/考公/考证 → 类别） ── */
   function renderFilters() {
-    var catCount = {}, stCount = {};
+    var bigCount = {}, catCount = {}, stCount = {}, extN = 0;
     ALL.forEach(function (c) {
-      catCount[c.类别] = (catCount[c.类别] || 0) + 1;
+      if (isExt(c)) extN++;
+      else {
+        bigCount[c.大类] = (bigCount[c.大类] || 0) + 1;
+        catCount[c.类别] = (catCount[c.类别] || 0) + 1;
+      }
       var s = marks[c.id] || '未标记';
       stCount[s] = (stCount[s] || 0) + 1;
     });
-    var cp = ['全部'].concat(CATS.map(function (x) { return x.id; })).map(function (id) {
-      var n = id === '全部' ? ALL.length : (catCount[id] || 0);
-      return '<button type="button" class="pill' + (cur.cat === id ? ' on' : '') + '" data-cat="' + esc(id) + '">' +
-        esc(id === '全部' ? '全部' : catName(id)) + '<span class="n">' + n + '</span></button>';
-    }).join('');
-    document.getElementById('catPills').innerHTML = cp;
+    var mainN = ALL.length - extN;              // 「全部」＝主列表（不含专业扩展）
+    document.getElementById('bigPills').innerHTML =
+      ['全部'].concat(BIGS.map(function (x) { return x.id; })).map(function (id) {
+        var n = id === '全部' ? mainN : (bigCount[id] || 0);
+        return '<button type="button" class="pill' + (cur.big === id ? ' on' : '') + '" data-big="' + esc(id) + '">' +
+          esc(id === '全部' ? '全部' : bigName(id)) + '<span class="n">' + n + '</span></button>';
+      }).join('');
+    /* 二级只列「考证」下面的细分（考研/考公 已经是一级了，不再重复列） */
+    var sub = CATS.filter(function (x) { return x.id !== '考研' && x.id !== '考公'; });
+    document.getElementById('catPills').innerHTML =
+      ['全部'].concat(sub.map(function (x) { return x.id; })).map(function (id) {
+        var n = id === '全部' ? mainN : (id === '专业扩展' ? extN : (catCount[id] || 0));
+        return '<button type="button" class="pill' + (cur.cat === id ? ' on' : '') + '" data-cat="' + esc(id) + '">' +
+          esc(id === '全部' ? '全部' : catName(id)) + '<span class="n">' + n + '</span></button>';
+      }).join('');
+    /* 选的是考研/考公 时，二级那一行没意义 → 收起来（同时把二级重置成「全部」） */
+    var onlyBig = (cur.big === '考研' || cur.big === '考公');
+    if (onlyBig && cur.cat !== '全部') { cur.cat = '全部'; }
+    var catRow = document.getElementById('catRow');
+    if (catRow) catRow.hidden = onlyBig;
     var sp = ['全部', '未标记'].concat(STATUS).map(function (s) {
       var n = s === '全部' ? ALL.length : (stCount[s] || 0);
       return '<button type="button" class="pill' + (cur.st === s ? ' on' : '') + '" data-st="' + esc(s) + '">' +
@@ -953,7 +991,9 @@
   }
 
   /* ── 渲染：卡片（按月分组 + A 版信息卡） ── */
-  var ORDER = ['语言', '计算机', '财经商科', '食品与营养', '教师资格', '技能新兴', '出国'];
+  var ORDER = ['语言与出国', '升学与体制内', '财经商科', '计算机与技能', '食品与营养', '专业扩展'];
+  /* 考研 / 国考 / 省考 没有「证」→ 第三枚按钮显示「已考」（存进去的还是「已拿」，状态筛选不受影响） */
+  function mkLabel(c, s) { return (c.类型 === '考试' && s === '已拿') ? '已考' : s; }
   var SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">' +
     '<path d="M12 15V4M8.5 7.2 12 3.7l3.5 3.5M5.5 13v5.5a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V13"/></svg>';
 
@@ -986,10 +1026,12 @@
   }
   function cardHTML(c) {
     var st = marks[c.id] || '', cd = countdown(c);
+    /* 胶囊：考研/考公 显示大类；考证的显示二级类别。简称跟胶囊同名时只留一个，别「考研 考研」 */
+    var chip = (c.大类 && c.大类 !== '考证') ? bigName(c.大类) : catName(c.类别);
     return '<article class="card" id="c-' + esc(c.id) + '" data-id="' + esc(c.id) + '">' +
       '<div class="card-top">' +
-        '<h2>' + esc(c.名) + (c.简称 ? '<span class="abbr">' + esc(c.简称) + '</span>' : '') + '</h2>' +
-        '<span class="cat">' + esc(catName(c.类别)) + '</span>' +
+        '<h2>' + esc(c.名) + (c.简称 && c.简称 !== chip ? '<span class="abbr">' + esc(c.简称) + '</span>' : '') + '</h2>' +
+        '<span class="cat">' + esc(chip) + '</span>' +
         (cd.t ? '<span class="cd ' + (cd.hot ? 'hot ' : '') + cd.cls + '">' + esc(cd.t) + '</span>' : '') +
       '</div>' +
       '<div class="facts">' +
@@ -1006,7 +1048,7 @@
         (c.官网 ? '<a class="upd" href="' + esc(c.官网) + '" target="_blank" rel="noopener">官网核对 ↗</a>' : '') +
         '<span class="sts">' + STATUS.map(function (s) {
           return '<button type="button" class="st ' + esc(s) + (st === s ? ' on' : '') + '" data-id="' + esc(c.id) +
-            '" data-mk="' + esc(s) + '" aria-pressed="' + (st === s) + '">' + esc(s) + '</button>';
+            '" data-mk="' + esc(s) + '" aria-pressed="' + (st === s) + '">' + esc(mkLabel(c, s)) + '</button>';
         }).join('') + '</span>' +
         '<button type="button" class="share-btn" data-share="' + esc(c.id) + '" title="分享这张卡片（整张卡 + 二维码）">' + SHARE_ICON + '分享</button>' +
       '</div>' +
@@ -1045,7 +1087,7 @@
       '　·　数据截至 ' + esc(upd) +
       '　·　共 ' + ALL.length + ' 条　·　已标记 ' + Object.keys(marks).length + ' 项' +
       (warn ? '<br><span class="warn">数据已经 ' + age + ' 天没更新了，报名与考试时间以官网为准。</span>' : '');
-    document.getElementById('footSig').textContent = '大学生考证时间轴 · 数据截至 ' + upd;
+    document.getElementById('footSig').textContent = '大学生日历 · 数据截至 ' + upd;
     var cats = CATS.map(function (x) { return x.名; }).join(' / ');
     document.getElementById('footNote').innerHTML =
       '报名与考试时间可能调整，以各证的官方网站为准' +
@@ -1074,8 +1116,9 @@
   }
   function bind() {
     document.getElementById('filters').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-cat],button[data-st]');
+      var b = e.target.closest('button[data-big],button[data-cat],button[data-st]');
       if (!b) return;
+      if (b.dataset.big) { cur.big = b.dataset.big; cur.cat = '全部'; }   // 换大类就把二级归零，免得出现"空结果"
       if (b.dataset.cat) cur.cat = b.dataset.cat;
       if (b.dataset.st) cur.st = b.dataset.st;
       paint();
@@ -1135,6 +1178,7 @@
       start: WINDOW[0], end: WINDOW[MONTHS - 1], months: MONTHS,
       today: TODAY, total: ALL.length, shown: lines.length,
       cat: cur.cat, st: cur.st, q: cur.q, loose: LOOSE, marked: Object.keys(marks).length,
+      big: cur.big, bigs: BIGS.length, cats: CATS.length,
       deep: DEEP || '', shareBtns: document.querySelectorAll('.share-btn').length,
       theme: document.documentElement.getAttribute('data-theme') || 'day',
       groups: document.querySelectorAll('.grp').length,

@@ -97,6 +97,9 @@ h1 em::after{
   display:flex;flex-direction:column;gap:10px;
 }
 .frow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* ⚠️ 必须显式写这一条：`.frow{display:flex}` 会盖掉浏览器默认的 [hidden]{display:none}，
+   选「考研 / 考公」时想把二级那一行藏起来就藏不住（2026-09-27 真踩） */
+.frow[hidden]{display:none}
 .flabel{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;flex:0 0 auto}
 .pills{display:flex;flex-wrap:wrap;gap:8px}
 .pill{
