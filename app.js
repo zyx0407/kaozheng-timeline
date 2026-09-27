@@ -616,14 +616,23 @@
   }
   function domainOf(u) { return String(u || '').replace(/^https?:\/\//, '').replace(/\/$/, ''); }
   function hostOf(u) { var m = /^https?:\/\/([^/?#]+)/.exec(String(u || '')); return m ? m[1] : domainOf(u); }
-  /* 分享卡上只放最近一批报名 / 考试（全批次会挤成一团） */
-  function shareReg(c) { var f = fitOf(c), rs = regs(c); return f.regs[0] || rs[0] || null; }
-  function shareExam(c) { var f = fitOf(c), es = exams(c); return f.exams[0] || es[0] || null; }
+  /* 分享卡上放最近一批报名 + 最近两场考试（全批次会挤成一团）。
+     DOM 与 canvas 存图**共用这两个函数**，免得「页面上写两场、存下来的图只有一场」 */
+  function shareRegText(c) {
+    var f = fitOf(c), rs = regs(c), r = f.regs[0] || rs[0] || null;
+    return r ? rangeText(r) : '全年可报名';
+  }
+  function shareExamText(c) {
+    var f = fitOf(c), es = exams(c);
+    var all = f.exams.length ? f.exams
+      : es.filter(function (e) { return e.日 >= TODAY; }).sort(function (a, b) { return a.日 < b.日 ? -1 : (a.日 > b.日 ? 1 : 0); });
+    if (!all.length) return c.未公布 ? '待官方公布' : '窗口内无考期';
+    return all.slice(0, 2).map(function (e) {
+      return cnDate(e.日) + (e.类型 ? '（' + e.类型 + '）' : '');
+    }).join(' · ');
+  }
   function shareCardHTML(c, g, url) {
-    var r = shareReg(c), e = shareExam(c);
-    var reg = r ? rangeText(r) : '全年可报名';
-    var ex = e ? cnDate(e.日) + (e.日止 ? '–' + cnDate(e.日止) : '') + (e.类型 ? '（' + e.类型 + '）' : '')
-      : (c.未公布 ? '待官方公布' : '窗口内无考期');
+    var reg = shareRegText(c), ex = shareExamText(c);
     var note = String(c.说明 || '').replace(/^小鱼：/, '');
     return '<div class="share-card" data-share-card="' + esc(c.id) + '">' +
       '<div class="sh-head"><span class="brand">考证时间轴</span><span>阿玖 · zyx0407</span></div>' +
@@ -679,12 +688,8 @@
     /* 四行事实：左标签 + 右值（值太长就折行） */
     y += 16; L(padX, y, W - padX, y, cSoft); y += 6;
     var rows = [
-      ['报名时间', shareReg(c) ? rangeText(shareReg(c)) : '全年可报名', true],
-      ['考试时间', (function () {
-        var e = shareExam(c);
-        if (!e) return c.未公布 ? '待官方公布' : '窗口内无考期';
-        return cnDate(e.日) + (e.日止 ? '–' + cnDate(e.日止) : '') + (e.类型 ? '（' + e.类型 + '）' : '');
-      })(), true],
+      ['报名时间', shareRegText(c), true],
+      ['考试时间', shareExamText(c), true],
       ['费用', c.费用 || '以官网公告为准', false],
       ['官方网站', (c.官网名 || '待补') + (c.官网 ? '（' + domainOf(c.官网) + '）' : ''), false]
     ];
@@ -1146,8 +1151,11 @@
       data.shareCard = cb; data.shareActions = ab;
       data.shareCardMid = cb ? Math.round((cb.l + cb.r) / 2) : null;
       data.shareActionsMid = ab ? Math.round((ab.l + ab.r) / 2) : null;
+      /* 判据：卡片与按钮排同轴 **且按钮排不许超出卡片左右边**（光同轴不够——按钮排比卡片宽时
+         按钮顶在那一排最左边，看着还是「选项会偏移」，2026-09-27 他连报两次） */
       data.shareFit = !!(cb && ab) && cb.l >= 0 && ab.l >= 0 && ab.r <= vw + 1 && cb.r <= vw + 1 &&
-        Math.abs((cb.l + cb.r) / 2 - (ab.l + ab.r) / 2) <= 1;
+        Math.abs((cb.l + cb.r) / 2 - (ab.l + ab.r) / 2) <= 1 &&
+        ab.l >= cb.l - 1 && ab.r <= cb.r + 1;
     }
     document.documentElement.setAttribute('data-kaozheng', JSON.stringify(data));
     window.__kz = {

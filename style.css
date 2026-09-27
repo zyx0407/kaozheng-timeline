@@ -18,6 +18,9 @@
   --max:1160px;
   --mono:Consolas,"Cascadia Mono",ui-monospace,monospace;
   --r:3px;
+  /* 分享卡宽度：卡片和底下按钮排**共用这一个值** —— 按钮排必须和卡片同宽同位，
+     否则按钮顶在一排更宽的东西最左边，看着就是「下面的选项会偏移」（2026-09-27 他连报两次） */
+  --share-w:376px;
 }
 html[data-theme="night"]{
   color-scheme:only dark;
@@ -253,13 +256,14 @@ html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.
 .empty{padding:clamp(40px,8vh,80px) 0;text-align:center;color:var(--muted);font-size:14.5px}
 
 /* ── 分享弹层：分享的就是**整张卡片**（时间 / 费用 / 官网 + 右下角二维码） ──
-   弹层居中的坑（2026-09-27 他报「下面的选项会偏移」）：卡片与按钮排必须同一条中轴。
-   做法：.shade（flex）→ .shade-inner（width:100% + margin:auto）→ #shareHost 撑满整行、
-   用 flex 居中卡片 → 底下按钮排自己也居中。别改回 align-items:center 那套（内容比视口宽时左半边会被挤出可视区）。 */
+   弹层对齐的坑（2026-09-27 他报过两次「下面的选项会偏移」）：
+   ① 别用 `align-items:center` 居中（内容比视口宽时左半边被挤出可视区、拖不回来）；
+   ② **按钮排要和卡片同宽**（都用 --share-w）：光"中轴对齐"不够 —— 按钮排比卡片宽时，
+      按钮会顶在那一排的最左边，看着仍然像歪的。所以现在卡片、按钮排、提示行一条竖线对齐。 */
 .shade{position:fixed;inset:0;z-index:60;background:rgba(12,12,13,.42);display:flex;overflow:auto;padding:20px}
 .shade-inner{margin:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
 #shareHost{display:flex;justify-content:center;width:100%;min-width:0}
-.share-card{width:376px;max-width:100%;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r);padding:24px 26px 22px}
+.share-card{width:var(--share-w);max-width:100%;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r);padding:24px 26px 22px}
 .share-card .sh-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .share-card .sh-head .brand{color:var(--amber)}
 .share-card h3{margin:15px 0 3px;font-size:20px;font-weight:600;line-height:1.35}
@@ -275,13 +279,13 @@ html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.
 .sh-qr .qt{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.7;letter-spacing:.02em;word-break:break-all;min-width:0}
 .sh-qr .qt b{display:block;color:var(--ink);font-weight:400;font-size:11.5px;margin-bottom:3px}
 .sh-qr .noqr{font-size:12px;color:var(--muted)}
-.shade-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:100%}
+.shade-actions{width:var(--share-w);max-width:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
 .btn-primary,.btn-ghost{appearance:none;border-radius:999px;padding:5px 15px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:color .22s,border-color .22s,background-color .22s}
 .btn-primary{border:1px solid var(--amber);background:var(--amber);color:var(--bg)}
 .btn-ghost{border:1px solid var(--chip);background:none;color:var(--muted)}
 .btn-ghost:hover{color:var(--ink);border-color:var(--line-strong);background:var(--hover)}
 html[data-theme="night"] .btn-primary{color:#141518}
-.shade-tip{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.shade-tip{flex:1 0 100%;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
 
 footer{
   padding:clamp(44px,7vh,90px) 0 46px;display:flex;flex-wrap:wrap;gap:14px 26px;
