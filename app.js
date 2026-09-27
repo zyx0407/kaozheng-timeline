@@ -353,7 +353,7 @@
     // 一组真实分享链接
     var cases = [
       'https://work1.zyx0407.com/?card=cet4',
-      'http://127.0.0.1:5185/?card=shipin-anquan-guanlishi',
+      'https://work1.zyx0407.com/?card=shipin-anquan-guanlishi',
       'https://work1.zyx0407.com/?card=zhuci-yingyangshi&theme=night'
     ];
     var rows = [];
