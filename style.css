@@ -1,5 +1,7 @@
-/* 大学生考证时间轴 · 样式
-   Token 与线条/胶囊/悬停规律照搬 IP 站 C-gallery 的 style.css（改配色先改 个人IP\视觉规范.md） */
+/* 大学生考证时间轴 · 样式（A 版「展览式」，2026-09-27 定版）
+   Token 与线条/胶囊/悬停规律照搬 IP 站 C-gallery 的 style.css（改配色先改 个人设计\个人IP\视觉规范.md）。
+   形状语言照规范：一个强调色（琥珀）只用在「编号 / 链接 / 下划线 / 当前状态」；
+   不用渐变背景充高级、没有卡片投影、除胶囊与圆钮外圆角 ≤3px；层次靠底色差 + 1px 细线 + 留白。 */
 :root{
   color-scheme:only light;
   --bg:#efeee9;
@@ -15,6 +17,7 @@
   --pad:clamp(20px,5vw,72px);
   --max:1160px;
   --mono:Consolas,"Cascadia Mono",ui-monospace,monospace;
+  --r:3px;
 }
 html[data-theme="night"]{
   color-scheme:only dark;
@@ -111,7 +114,7 @@ h1 em::after{
 .q::placeholder{color:var(--muted);opacity:.8}
 .q:focus{outline:none;border-color:var(--amber);background:var(--hover)}
 
-/* ── 时间轴（滚动钉住：往下滚就一直看得见） ──
+/* ── 时间轴条（滚动钉住：往下滚就一直看得见） ──
    ⚠️ 这里**故意不用 position:sticky**：在这张页面里它只吸一截就跟着走
    （2026-09-27 实测 top=-2411，逐层排查没找到破坏者）→ 改成 app.js 用滚动事件钉住，行为可测可控。
    钉住时加 .pinned（app.js 给），脱开时自动还原。 */
@@ -121,11 +124,10 @@ h1 em::after{
   position:relative;z-index:20;
   /* 通栏：负边距吃掉 .wrap 的左右内边距，底色自己补回来 */
   margin-left:calc(var(--pad) * -1);margin-right:calc(var(--pad) * -1);
-  padding:8px var(--pad) 9px;
+  padding:9px var(--pad) 11px;
   background:var(--bg);
   border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
 }
-/* 钉住的状态：底下加一道柔影，让人知道这条已经咬住顶部了 */
 .tlbar.pinned{
   position:fixed;top:0;left:auto;right:auto;margin:0;
   box-shadow:0 10px 24px -14px rgba(20,20,20,.45);
@@ -136,123 +138,101 @@ html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.
 }
 .tlbar-label{
   display:block;font-family:var(--mono);font-size:11px;color:var(--muted);
-  letter-spacing:.16em;text-transform:uppercase;margin:0 0 6px;
+  letter-spacing:.16em;text-transform:uppercase;margin:0 0 7px;
 }
-.tlbar-now{color:var(--amber);letter-spacing:.08em;margin-left:8px}
+.tlbar-now{color:var(--amber);letter-spacing:.08em;margin-left:8px;text-transform:none}
 .tlscroll{overflow-x:auto;overflow-y:hidden}
+
+/* ── 月份轴：12 个等宽月份格 ──
+   格子里只留「月 / 年 / 报 N · 考 N」，底沿一条中性密度条；
+   当前月＝一条琥珀线 + 琥珀数字（强调色只出现在「当前状态」）。 */
 .tl{display:grid;grid-template-columns:repeat(12,minmax(74px,1fr));position:relative;padding-top:2px}
-/* 一条通栏的琥珀细线＝时间轴本体（月份格之间没有线，清楚） */
-.tl::before{content:"";position:absolute;left:0;right:0;top:2px;height:1px;background:var(--line-strong)}
-.mslot{
-  position:relative;text-align:center;padding:11px 2px 1px;
-  border-left:1px solid var(--line);cursor:pointer;
+.tl::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--line-strong)}
+.axA-cell{
+  appearance:none;background:none;border:0;border-left:1px solid var(--line);cursor:pointer;
+  position:relative;text-align:center;padding:13px 4px 9px;min-height:78px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
   transition:background-color .22s;
 }
-.mslot:first-child{border-left:0}
-.mslot:hover{background:var(--hover)}
-.mslot .m{
-  display:block;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);
-  letter-spacing:.04em;line-height:1.15;
-}
-.mslot .y{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;margin-top:1px}
-.mslot .mdots{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;min-height:16px;padding:4px 0 1px}
+.axA-cell:first-child{border-left:0}
+.axA-cell:hover{background:var(--hover)}
+.axA-cell .m{font-family:var(--mono);font-size:17px;font-weight:600;line-height:1.1;letter-spacing:.02em}
+.axA-cell .y{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.12em}
+.axA-cell .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);opacity:.85;min-height:14px}
+.axA-cell .bar{position:absolute;left:12%;right:12%;bottom:8px;height:1px;background:var(--line-strong);overflow:hidden}
+.axA-cell .bar i{display:block;height:100%;background:var(--ink);opacity:.45}
+.axA-cell.past{opacity:.42}
+.axA-cell.past .bar{opacity:.3}
+.axA-cell.now .m{color:var(--amber)}
+.axA-cell.now::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--amber)}
+.axA-cell.sel{background:var(--hover)}
 
-/* 月份格里的「周」小刻度：让时间不只是平均数 12 格 */
-.cells{display:flex;gap:2px;padding:5px 4px 0;align-items:flex-end}
-.cell{flex:1;height:14px;opacity:.25;border-radius:1px;background:var(--line-strong);position:relative}
-.cell.reg{opacity:.3;background:var(--ink)}
-.cell.exam{opacity:.9;background:var(--amber);height:30px}
-.cell.tbd{opacity:.35;background:none;border:1px dashed var(--muted)}
-.cell.mine::after{
-  content:"";position:absolute;left:0;right:0;bottom:-5px;height:2px;background:var(--amber);
-}
-/* 已经过去的月份：压暗，眼睛先看现在与将来 */
-.mslot.past .m,.mslot.past .y{opacity:.42}
-.mslot.past{background:transparent}
-.mslot.now{background:linear-gradient(180deg,var(--amber-soft),transparent 70%)}
-.mslot.now::before{
-  content:"";position:absolute;left:0;right:0;top:2px;height:2px;background:var(--amber);
-}
-.mslot.now .m{color:var(--amber)}
-.mslot.now .y{color:var(--amber);opacity:.9}
-
-.dot{
-  width:10px;height:10px;padding:0;border:0;border-radius:50%;
-  background:var(--muted);opacity:.42;cursor:pointer;
-  transition:opacity .2s,transform .2s;
-}
-.dot.reg{background:var(--ink);opacity:.36}
-.dot.exam{background:var(--amber);opacity:.9;width:12px;height:12px}
-.dot.tbd{
-  background:none;border:1px dashed var(--muted);opacity:.6;width:12px;height:12px;
-}
-.dot:hover,.dot:focus-visible{opacity:1;transform:scale(1.35)}
-.dot.mine{box-shadow:0 0 0 2px var(--amber-soft)}
-
-/* ── 图例 ───────────────────────────── */
-.legend{
-  margin:12px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--muted);
-  letter-spacing:.04em;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
-}
-.legend .dot{width:7px;height:7px;cursor:default;display:inline-block;transform:none}
-.legend .dot:hover{transform:none}
-.lgspan{width:1px;height:12px;background:var(--line-strong);display:inline-block;margin:0 4px}
-.legend-st b{font-weight:400}
-
-/* ── 证书卡（沿用 IP 站作品行：56px | 1fr | auto） ── */
+/* ── 清单：按月分组，左边一个大月份编号（编号用强调色） ── */
 .list{margin:clamp(18px,3vh,26px) 0 0}
 .list-head{
   display:flex;justify-content:space-between;align-items:baseline;gap:20px;
   padding-bottom:12px;border-bottom:1px solid var(--line-strong);
   font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;
 }
+.grp{display:grid;grid-template-columns:104px 1fr;gap:clamp(14px,3vw,34px);padding:clamp(28px,4vh,42px) 0 0}
+.grp-side{position:relative;padding-top:2px}
+.grp-side .mo{font-family:var(--mono);font-size:34px;font-weight:600;line-height:1;color:var(--amber);letter-spacing:-.01em}
+.grp-side .u{font-family:var(--mono);font-size:12px;color:var(--amber);margin-left:3px;opacity:.85}
+.grp-side .yr{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.14em;margin-top:5px}
+.grp-side .cnt{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted);opacity:.8;margin-top:8px}
+.grp-side::after{content:"";position:absolute;left:-1px;top:80px;bottom:-16px;width:1px;background:var(--line)}
+.grp-body{display:flex;flex-direction:column;gap:16px}
+
+/* ── 卡片：底色差 + 1px 细线，无投影；悬停＝极淡横向渐隐 + 标题右移 5px ── */
 .card{
-  display:grid;grid-template-columns:56px 1fr auto;gap:clamp(12px,3vw,34px);align-items:start;
-  padding:clamp(20px,3vw,30px) 0;border-bottom:1px solid var(--line);position:relative;
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px 24px 18px;transition:border-color .3s;
 }
 .card::before{
-  content:"";position:absolute;left:calc(var(--pad) * -1);right:calc(var(--pad) * -1);top:0;bottom:0;
-  background:linear-gradient(90deg,var(--hover),transparent);
-  opacity:0;transition:opacity .35s;pointer-events:none;
+  content:"";position:absolute;inset:0;border-radius:var(--r);pointer-events:none;
+  background:linear-gradient(90deg,var(--hover),transparent);opacity:0;transition:opacity .35s;
 }
+.card:hover{border-color:var(--line-strong)}
 .card:hover::before{opacity:1}
-.card.hit::before{opacity:1}
-.card.hit{box-shadow:inset 2px 0 0 var(--amber)}
-.months{font-family:var(--mono);font-size:12.5px;color:var(--amber);letter-spacing:.06em;padding-top:.4em;line-height:1.5}
-.months i{display:block;font-style:normal;color:var(--muted);opacity:.75;font-size:11px}
-.card h2{
+.card.hit{border-color:var(--amber)}
+.card-top{position:relative;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card-top h2{
   margin:0;font-size:clamp(17px,2vw,21px);font-weight:600;letter-spacing:.01em;
   display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap;
   transition:transform .35s cubic-bezier(.22,.61,.36,1);
 }
-.card:hover h2{transform:translateX(5px)}
-.card h2 .abbr{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;font-weight:400}
-.rows{margin:12px 0 0;display:flex;flex-direction:column;gap:5px}
-.row{display:flex;gap:10px;align-items:baseline;font-size:14px;line-height:1.75;flex-wrap:wrap}
-.row .k{
-  flex:0 0 auto;font-family:var(--mono);font-size:11.5px;color:var(--muted);
-  letter-spacing:.1em;min-width:4.2em;
-}
-.row .v{flex:1 1 60%;min-width:8em}
-.row .v .dates{font-family:var(--mono);font-size:13px}
-.tag{
-  border:1px solid var(--chip);border-radius:999px;padding:2px 9px;
-  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--muted);
-}
-.tag.src{color:var(--amber);border-color:var(--amber-soft)}
+.card:hover .card-top h2{transform:translateX(5px)}
+.card-top .abbr{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;font-weight:400}
+.card-top .cat{font-family:var(--mono);font-size:10.5px;color:var(--muted);border:1px solid var(--chip);border-radius:999px;padding:1px 8px;letter-spacing:.08em}
+.card-top .cd{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;white-space:nowrap;text-align:right}
+.card-top .cd.hot{color:var(--amber)}          /* 当前状态 → 允许用强调色 */
+.card-top .cd.done{opacity:.6}
+
+.facts{position:relative;display:grid;grid-template-columns:1.4fr 1.15fr 1fr;gap:0;margin:16px 0 0;border-top:1px solid var(--line);padding-top:14px}
+.facts .f{padding:0 18px;border-left:1px solid var(--line)}
+.facts .f:first-child{padding-left:0;border-left:0}
+.facts .k{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.14em;margin-bottom:5px}
+.facts .v{display:block;font-size:14px;line-height:1.65}
+.facts .v .dates{font-family:var(--mono);font-size:13px}
+.facts .v .next{color:var(--ink)}
+.facts .v .alt{color:var(--muted);opacity:.85}     /* 第二批次压一档，眼睛先看最近那次 */
+.facts .v .tag{font-family:var(--mono);font-size:10px;color:var(--amber);border:1px solid var(--amber-soft);border-radius:999px;padding:0 6px;margin-left:6px;white-space:nowrap}
+.facts .v .dim{color:var(--muted)}
+
+.card-site{position:relative;display:inline-flex;align-items:baseline;gap:7px;margin-top:14px;font-size:13.5px;color:var(--muted)}
+.card-site .u{font-family:var(--mono);font-size:11.5px;border-bottom:1px solid var(--line-strong);padding-bottom:1px}
+.card-site:hover{color:var(--amber)}
+.card-site:hover .u{border-color:var(--amber)}
+.card-for{position:relative;margin:10px 0 0;font-size:13px;color:var(--muted)}
+.card-for .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;margin-right:8px}
 /* 卡片里那句「小鱼：…」是主要读的内容（他 2026-09-27 定的口吻），所以给足字号行高 */
-.note{margin:12px 0 0;color:var(--ink);opacity:.82;font-size:14.5px;line-height:1.85;max-width:38em}
+.note{position:relative;margin:14px 0 0;padding-left:12px;border-left:1px solid var(--line-strong);font-size:14.5px;line-height:1.85;opacity:.86;max-width:44em}
 .note strong{font-weight:600;opacity:1}
-.side{
-  display:flex;flex-direction:column;align-items:flex-end;gap:11px;padding-top:.2em;
-}
-.count{
-  font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;
-  text-align:right;white-space:nowrap;
-}
-.count.hot{color:var(--amber)}
-.count.done{opacity:.6}
-.sts{display:flex;gap:6px}
+
+.foot{position:relative;display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.foot .upd{font-family:var(--mono);font-size:11px;color:var(--muted);opacity:.85;letter-spacing:.04em}
+.foot a.upd:hover{color:var(--amber)}
+.sts{margin-left:auto;display:flex;gap:6px}
 .st{
   appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
   padding:3px 10px;font-family:var(--mono);font-size:11.5px;color:var(--muted);cursor:pointer;white-space:nowrap;
@@ -262,56 +242,46 @@ html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.
 .st.on.准备{color:var(--amber);border-color:var(--amber)}
 .st.on.已拿{color:var(--ink);border-color:var(--line-strong);background:var(--hover)}
 .st.on.不考{color:var(--ink);opacity:.55;border-color:var(--line-strong)}
-.updated{font-family:var(--mono);font-size:11px;color:var(--muted);opacity:.8;letter-spacing:.04em}
-.empty{
-  padding:clamp(40px,8vh,80px) 0;text-align:center;color:var(--muted);font-size:14.5px;
-}
-.toTop{
-  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
-  padding:3px 11px;font-family:var(--mono);font-size:11.5px;color:var(--muted);cursor:pointer;
-}
-.toTop:hover{color:var(--amber);border-color:var(--amber)}
-
-/* ── 分享键 + 弹层（每张卡一个二维码） ── */
 .share-btn{
-  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
+  appearance:none;display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--chip);border-radius:999px;background:none;
   padding:3px 11px;font-family:var(--mono);font-size:11.5px;color:var(--muted);cursor:pointer;
   transition:color .2s,border-color .2s,background-color .2s;
 }
 .share-btn:hover{color:var(--amber);border-color:var(--amber);background:var(--hover)}
-.share-box{
-  position:fixed;inset:0;z-index:60;background:rgba(12,12,13,.34);
-  display:flex;align-items:center;justify-content:center;padding:20px;
-}
-.share-panel{
-  position:relative;background:var(--bg);border:1px solid var(--line-strong);
-  padding:22px 24px 18px;max-width:min(340px,100%);text-align:center;
-  box-shadow:0 24px 60px -30px rgba(0,0,0,.5);
-}
-html[data-theme="night"] .share-panel{background:var(--card);box-shadow:0 24px 60px -24px rgba(0,0,0,.8)}
-.share-panel .share-title{margin:0 0 14px;font-size:15px;font-weight:600;line-height:1.5;padding-right:18px;text-align:left}
-.qr-svg{display:block;margin:0 auto;width:168px;height:168px}
-.share-noqr{margin:8px 0;color:var(--muted);font-size:13px}
-.share-panel .share-url{
-  font-family:var(--mono);font-size:11px;color:var(--muted);word-break:break-all;
-  margin:14px 0 12px;text-align:left;line-height:1.6;
-}
-.share-actions{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
-.share-copy{
-  appearance:none;border:1px solid var(--chip);border-radius:999px;background:none;
-  padding:4px 13px;font-family:var(--mono);font-size:12px;color:var(--amber);cursor:pointer;
-  transition:border-color .2s,background-color .2s;
-}
-.share-copy:hover{border-color:var(--amber);background:var(--hover)}
-.share-tip{font-size:11.5px;color:var(--muted);text-align:left}
-.share-close{
-  appearance:none;position:absolute;top:8px;right:10px;width:24px;height:24px;padding:0;
-  border:0;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;
-}
-.share-close:hover{color:var(--amber)}
-/* 从二维码进来时把那张卡标亮，让人一眼看到 */
-.card.hit{background:linear-gradient(90deg,var(--hover),transparent)}
-.card.hit .months{color:var(--amber)}
+.share-btn svg{width:12px;height:12px}
+.empty{padding:clamp(40px,8vh,80px) 0;text-align:center;color:var(--muted);font-size:14.5px}
+
+/* ── 分享弹层：分享的就是**整张卡片**（时间 / 费用 / 官网 + 右下角二维码） ──
+   弹层居中的坑（2026-09-27 他报「下面的选项会偏移」）：卡片与按钮排必须同一条中轴。
+   做法：.shade（flex）→ .shade-inner（width:100% + margin:auto）→ #shareHost 撑满整行、
+   用 flex 居中卡片 → 底下按钮排自己也居中。别改回 align-items:center 那套（内容比视口宽时左半边会被挤出可视区）。 */
+.shade{position:fixed;inset:0;z-index:60;background:rgba(12,12,13,.42);display:flex;overflow:auto;padding:20px}
+.shade-inner{margin:auto;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
+#shareHost{display:flex;justify-content:center;width:100%;min-width:0}
+.share-card{width:376px;max-width:100%;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r);padding:24px 26px 22px}
+.share-card .sh-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.share-card .sh-head .brand{color:var(--amber)}
+.share-card h3{margin:15px 0 3px;font-size:20px;font-weight:600;line-height:1.35}
+.share-card .abbr{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
+.sh-facts{margin:15px 0 0;display:flex;flex-direction:column;gap:8px}
+.sh-facts .r{display:grid;grid-template-columns:4.6em 1fr;gap:10px;align-items:baseline;font-size:13.5px;line-height:1.65}
+.sh-facts .k{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em}
+.sh-facts .v .dates{font-family:var(--mono);font-size:12.5px}
+.sh-facts .sub{display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:1px}
+.sh-note{margin:14px 0 0;padding-left:12px;border-left:1px solid var(--line-strong);font-size:12.8px;line-height:1.8;opacity:.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sh-qr{display:flex;align-items:flex-end;gap:14px;margin-top:17px;padding-top:15px;border-top:1px solid var(--line)}
+.sh-qr svg{display:block;width:96px;height:96px;background:#fff;padding:4px}
+.sh-qr .qt{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.7;letter-spacing:.02em;word-break:break-all;min-width:0}
+.sh-qr .qt b{display:block;color:var(--ink);font-weight:400;font-size:11.5px;margin-bottom:3px}
+.sh-qr .noqr{font-size:12px;color:var(--muted)}
+.shade-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:100%}
+.btn-primary,.btn-ghost{appearance:none;border-radius:999px;padding:5px 15px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:color .22s,border-color .22s,background-color .22s}
+.btn-primary{border:1px solid var(--amber);background:var(--amber);color:var(--bg)}
+.btn-ghost{border:1px solid var(--chip);background:none;color:var(--muted)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--line-strong);background:var(--hover)}
+html[data-theme="night"] .btn-primary{color:#141518}
+.shade-tip{font-family:var(--mono);font-size:11px;color:var(--muted)}
 
 footer{
   padding:clamp(44px,7vh,90px) 0 46px;display:flex;flex-wrap:wrap;gap:14px 26px;
@@ -328,7 +298,7 @@ footer a:hover{color:var(--amber)}
 .in .rv:nth-of-type(3){transition-delay:.12s}
 html[data-nofade] .rv,html[data-nofade] .in .rv{opacity:1;transform:none;transition:none}
 html[data-nofade] h1 em::after{transform:scaleX(1);transition:none}
-html[data-nofade] .card h2{transform:none}
+html[data-nofade] .card-top h2{transform:none}
 @media (prefers-reduced-motion:reduce){
   .rv,.in .rv{opacity:1;transform:none;transition:none}
   h1 em::after{transform:scaleX(1);transition:none}
@@ -336,19 +306,24 @@ html[data-nofade] .card h2{transform:none}
 }
 
 @media (max-width:640px){
-  .card{grid-template-columns:42px 1fr}
-  .side{grid-column:2;align-items:flex-start}
-  .top{flex-wrap:wrap;gap:12px}
-  .row .k{min-width:0}
-  /* 窄屏：轴只留「考试日」一条信息，省出纵向空间 */
-  .tl{grid-template-columns:repeat(12,minmax(46px,1fr));min-width:0}
-  .tlbar{padding:6px var(--pad) 7px}
-  .tlbar-label{margin-bottom:4px}
-  .mslot{padding-top:8px}
-  .mslot .m{font-size:11.5px}
-  .mslot .y{font-size:9px}
-  .mslot .mdots{display:none}
-  .cells{padding-top:4px}
-  .cell{height:10px}
-  .cell.exam{height:22px}
+  .grp{grid-template-columns:56px 1fr;gap:14px;padding-top:24px}
+  .grp-side .mo{font-size:24px}
+  .grp-side .cnt{margin-top:6px}
+  .grp-side::after{display:none}
+  .card{padding:18px 18px 15px}
+  .facts{grid-template-columns:1fr;gap:10px;padding-top:12px}
+  .facts .f{padding:0;border-left:0}
+  .card-top .cd{margin-left:0;width:100%;text-align:left}
+  .sts{margin-left:0}
+  .foot .upd{width:100%}
+  /* 窄屏：轴只留「月 + 报/考」，省出纵向空间 */
+  .tl{grid-template-columns:repeat(12,minmax(58px,1fr))}
+  .tlbar{padding:7px var(--pad) 8px}
+  .tlbar-label{margin-bottom:5px}
+  .axA-cell{padding:10px 3px 8px;min-height:68px}
+  .axA-cell .m{font-size:15px}
+  .axA-cell .tag{font-size:9px}
+  .share-card{padding:20px 20px 18px}
+  .sh-qr{gap:11px}
+  .sh-qr svg{width:84px;height:84px}
 }
