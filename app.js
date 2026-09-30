@@ -678,7 +678,8 @@
      版式跟页面上的分享卡对齐；二维码按模块画，落盘后仍能被扫码器解出原链接（test\share-card-check.mjs 验它）。 */
   function shareCanvas(c, g, url) {
     var S = 2, W = 376, padX = 24, PT = 22, kCol = 62;
-    var fam = '"Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif';
+    var fam = '"Noto Sans SC","Source Han Sans SC","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif';
+    var hand = 'italic 12.8px "FangSong","仿宋","Noto Serif SC",serif'; /* 小鱼的话＝仿宋斜，跟站点 G1 一致（canvas 里 font-style 写进 shorthand） */
     var mono = '"Consolas","Cascadia Mono",monospace';
     var cInk = '#1c1d1f', cMuted = '#7e807c', cAmber = '#a8541f', cBg = '#f8f7f3', cLine = '#d9d7d1', cSoft = '#e6e4de';
     var cv = document.createElement('canvas'), ctx = cv.getContext('2d');
@@ -724,9 +725,9 @@
     var note = String(c.说明 || '').replace(/^小鱼：/, '');
     if (note) {
       y += 13;
-      var nl = wrap('小鱼：' + note, '12.8px ' + fam, W - padX * 2 - 12).slice(0, 3);
+      var nl = wrap('小鱼：' + note, hand, W - padX * 2 - 12).slice(0, 3);
       L(padX, y + 2, padX, y + nl.length * 21 - 4, cLine);
-      nl.forEach(function (ln, i) { T(ln, '12.8px ' + fam, cInk, padX + 12, y + 14 + i * 21); });
+      nl.forEach(function (ln, i) { T(ln, hand, cInk, padX + 12, y + 14 + i * 21); });
       y += nl.length * 21;
     }
     /* 二维码 + 说明 */

@@ -17,6 +17,10 @@
   --pad:clamp(20px,5vw,72px);
   --max:1160px;
   --mono:Consolas,"Cascadia Mono",ui-monospace,monospace;
+  /* 字型 G1 同款（2026-09-30 站点改版定案搬进来：思源宋标题 / 思源黑正文 / 仿宋斜＝小鱼的话） */
+  --serif:"Noto Serif SC","Source Han Serif SC","SimSun",serif;
+  --sans:"Noto Sans SC","Source Han Sans SC","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
+  --hand:"FangSong","仿宋","Noto Serif SC",serif;
   --r:3px;
   /* 分享卡宽度：卡片和底下按钮排**共用这一个值** —— 按钮排必须和卡片同宽同位，
      否则按钮顶在一排更宽的东西最左边，看着就是「下面的选项会偏移」（2026-09-27 他连报两次） */
@@ -38,7 +42,7 @@ html[data-theme="night"]{
 *{box-sizing:border-box}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  font-family:"Segoe UI","Microsoft YaHei UI","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  font-family:var(--sans);
   font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;
   /* 防横向溢出要用 clip 而不是 hidden：
      hidden 会把 body 变成滚动容器 → 吸顶时间轴会被它困在 body 里、咬不住视口（2026-09-27 踩过，CDP 实测 top=-811） */
@@ -80,7 +84,7 @@ html[data-theme="night"] .theme .ico-moon{opacity:1;transform:none}
   font-family:var(--mono);font-size:12.5px;color:var(--muted);
   letter-spacing:.16em;text-transform:uppercase;margin:0 0 22px;
 }
-h1{margin:0;font-weight:600;letter-spacing:.005em;font-size:clamp(26px,4.4vw,48px);line-height:1.26;max-width:22em}
+h1{margin:0;font-family:var(--serif);font-weight:700;letter-spacing:.01em;font-size:clamp(26px,4.4vw,48px);line-height:1.26;max-width:22em}
 h1 em{font-style:normal;position:relative;white-space:nowrap}
 h1 em::after{
   content:"";position:absolute;left:0;right:0;bottom:.08em;height:1px;background:var(--amber);opacity:.7;
@@ -232,7 +236,7 @@ html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.
 .card-for{position:relative;margin:10px 0 0;font-size:13px;color:var(--muted)}
 .card-for .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;margin-right:8px}
 /* 卡片里那句「小鱼：…」是主要读的内容（他 2026-09-27 定的口吻），所以给足字号行高 */
-.note{position:relative;margin:14px 0 0;padding-left:12px;border-left:1px solid var(--line-strong);font-size:14.5px;line-height:1.85;opacity:.86;max-width:44em}
+.note{position:relative;margin:14px 0 0;padding-left:12px;border-left:1px solid var(--line-strong);font-family:var(--hand);font-style:italic;letter-spacing:.015em;font-size:14.5px;line-height:1.85;opacity:.86;max-width:44em}
 .note strong{font-weight:600;opacity:1}
 
 .foot{position:relative;display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
@@ -276,7 +280,7 @@ html[data-theme="night"] .tlbar.pinned{box-shadow:0 10px 24px -14px rgba(0,0,0,.
 .sh-facts .k{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em}
 .sh-facts .v .dates{font-family:var(--mono);font-size:12.5px}
 .sh-facts .sub{display:block;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:1px}
-.sh-note{margin:14px 0 0;padding-left:12px;border-left:1px solid var(--line-strong);font-size:12.8px;line-height:1.8;opacity:.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sh-note{margin:14px 0 0;padding-left:12px;border-left:1px solid var(--line-strong);font-family:var(--hand);font-style:italic;letter-spacing:.015em;font-size:12.8px;line-height:1.8;opacity:.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .sh-qr{display:flex;align-items:flex-end;gap:14px;margin-top:17px;padding-top:15px;border-top:1px solid var(--line)}
 .sh-qr svg{display:block;width:96px;height:96px;background:#fff;padding:4px}
 .sh-qr .qt{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.7;letter-spacing:.02em;word-break:break-all;min-width:0}
